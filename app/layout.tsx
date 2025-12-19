@@ -10,6 +10,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "File Converter - Convert Images Online",
   description: "Free online file converter. Convert PNG, JPG, WEBP, AVIF, TIFF, and GIF images instantly.",
+  icons: {
+    icon: '/icon.svg',
+  },
 };
 
 export default function RootLayout({

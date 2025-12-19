@@ -12,11 +12,12 @@
  * 
  * User Flow:
  * 1. User uploads a file (drag & drop or click)
- * 2. User selects target format
- * 3. User adjusts quality (optional)
- * 4. User clicks convert
- * 5. Server processes the file
- * 6. User downloads the converted file
+ * 2. User previews the image with metadata
+ * 3. User selects target format
+ * 4. User adjusts quality and resize options (optional)
+ * 5. User clicks convert
+ * 6. Server processes the file
+ * 7. User downloads the converted file
  */
 
 'use client';
@@ -25,6 +26,8 @@ import { useState, FormEvent } from 'react';
 import { FileUpload } from '@/components/FileUpload';
 import { FormatSelector } from '@/components/FormatSelector';
 import { QualitySlider } from '@/components/QualitySlider';
+import { ImagePreview } from '@/components/ImagePreview';
+import { ImageResizer, ResizeOptions } from '@/components/ImageResizer';
 import { convertFile } from '@/app/actions/convert';
 import { SupportedFormat } from '@/lib/types';
 import { DEFAULT_QUALITY } from '@/lib/constants';
@@ -34,9 +37,14 @@ export default function Home() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [targetFormat, setTargetFormat] = useState<SupportedFormat | null>(null);
   const [quality, setQuality] = useState<number>(DEFAULT_QUALITY);
+  const [resizeOptions, setResizeOptions] = useState<ResizeOptions>({
+    enabled: false,
+    maintainAspectRatio: true,
+  });
   const [isConverting, setIsConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [outputSize, setOutputSize] = useState<number | null>(null);
 
   /**
    * Handles the form submission and file conversion process
@@ -75,6 +83,19 @@ export default function Home() {
       formData.append('targetFormat', targetFormat);
       formData.append('quality', quality.toString());
 
+      // Add resize options if enabled
+      if (resizeOptions.enabled) {
+        if (resizeOptions.width) {
+          formData.append('width', resizeOptions.width.toString());
+        }
+        if (resizeOptions.height) {
+          formData.append('height', resizeOptions.height.toString());
+        }
+        if (resizeOptions.maintainAspectRatio) {
+          formData.append('maintainAspectRatio', 'true');
+        }
+      }
+
       // Call Server Action to convert the file
       // This runs on the server and returns the converted file
       const response = await convertFile(formData);
@@ -99,15 +120,20 @@ export default function Home() {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
 
-        setSuccess(`File converted successfully! Download started.`);
+        // Store output file size for comparison
+        setOutputSize(blob.size);
+
+        setSuccess(`File converted successfully! Original: ${(selectedFile.size / 1024).toFixed(1)}KB → New: ${(blob.size / 1024).toFixed(1)}KB`);
         
         // Reset form after successful conversion
         setTimeout(() => {
           setSelectedFile(null);
           setTargetFormat(null);
           setQuality(DEFAULT_QUALITY);
+          setResizeOptions({ enabled: false, maintainAspectRatio: true });
+          setOutputSize(null);
           setSuccess(null);
-        }, 3000);
+        }, 5000);
       } else {
         setError(response.error || 'Conversion failed');
       }
@@ -164,6 +190,28 @@ export default function Home() {
               />
             </div>
 
+            {/* Image Preview (shown after file upload) */}
+            {selectedFile && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 font-semibold text-sm">
+                    ✓
+                  </span>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Image Preview
+                  </h2>
+                </div>
+                <ImagePreview
+                  file={selectedFile}
+                  onRemove={() => {
+                    setSelectedFile(null);
+                    setTargetFormat(null);
+                    setResizeOptions({ enabled: false, maintainAspectRatio: true });
+                  }}
+                />
+              </div>
+            )}
+
             {/* Step 2: Select Format */}
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
@@ -194,6 +242,23 @@ export default function Home() {
               <QualitySlider
                 quality={quality}
                 onQualityChange={setQuality}
+                disabled={isConverting || !selectedFile}
+              />
+            </div>
+
+            {/* Step 4: Resize Options */}
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 font-semibold text-sm">
+                  4
+                </span>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Resize Image (Optional)
+                </h2>
+              </div>
+              <ImageResizer
+                options={resizeOptions}
+                onOptionsChange={setResizeOptions}
                 disabled={isConverting || !selectedFile}
               />
             </div>

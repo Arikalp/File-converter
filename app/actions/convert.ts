@@ -54,9 +54,15 @@ export async function convertFile(formData: FormData): Promise<ConversionRespons
     const file = formData.get('file') as File | null;
     const targetFormat = formData.get('targetFormat') as SupportedFormat;
     const qualityStr = formData.get('quality') as string | null;
+    const widthStr = formData.get('width') as string | null;
+    const heightStr = formData.get('height') as string | null;
     
     // Parse quality parameter (optional)
     const quality = qualityStr ? parseInt(qualityStr, 10) : undefined;
+    
+    // Parse resize parameters (optional)
+    const width = widthStr ? parseInt(widthStr, 10) : undefined;
+    const height = heightStr ? parseInt(heightStr, 10) : undefined;
 
     // Validate the uploaded file
     // This checks file size, MIME type, and other security constraints
@@ -98,6 +104,8 @@ export async function convertFile(formData: FormData): Promise<ConversionRespons
     const outputBuffer = await convertImage(inputBuffer, {
       format: targetFormat,
       quality,
+      width,
+      height,
     });
 
     // Generate output filename
