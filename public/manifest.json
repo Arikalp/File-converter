@@ -1,0 +1,35 @@
+{
+  "name": "File Converter",
+  "short_name": "Converter",
+  "description": "Free online image converter. Convert PNG, JPG, WEBP, AVIF, TIFF, and GIF images instantly.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Convert Image",
+      "short_name": "Convert",
+      "description": "Convert an image to a different format",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ]
+}
