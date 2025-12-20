@@ -103,7 +103,9 @@ export default function Home() {
       if (response.success && response.data && response.fileName && response.mimeType) {
         // Create a Blob from the converted data
         // Blob represents the file in memory for download
-        const blob = new Blob([response.data], { type: response.mimeType });
+        // Convert to Uint8Array to ensure proper ArrayBuffer type
+        const data = new Uint8Array(response.data);
+        const blob = new Blob([data], { type: response.mimeType });
         
         // Create a temporary URL for the Blob
         // This allows us to trigger a download in the browser
